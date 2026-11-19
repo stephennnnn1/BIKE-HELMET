@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Vision Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --surface: #ffffff;
+      --surface-subtle: #efece4;
+      --ink: #18181b;
+      --ink-muted: #52525b;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --border: #e4e4e7;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --shadow: 0 10px 30px -12px rgba(24, 24, 27, 0.08);
+      --container: 1080px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: min(100% - 2.5rem, var(--container));
+      margin-inline: auto;
+    }
+
+    /* Header / Nav */
+    header {
+      padding-block: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(246, 244, 239, 0.85);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+    }
+
+    .nav-links a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    /* Hero */
+    .hero {
+      padding-block: 3.5rem 2.5rem;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-pill);
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 4.5vw, 3.25rem);
+      max-width: 18ch;
+    }
+
+    .hero-sub {
+      margin-top: 1rem;
+      max-width: 58ch;
+      color: var(--ink-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Main Interactive Grid */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+      align-items: start;
+      padding-bottom: 4rem;
+    }
+
+    @media (max-width: 860px) {
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+    }
+
+    .stage-frame {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+    }
+
+    .stage-frame canvas,
+    .stage-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .stage-placeholder {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--ink-muted);
+      max-width: 30ch;
+      font-size: 0.92rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    button, .upload-btn {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: var(--radius-pill);
+      padding: 0.7rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    button:active, .upload-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #115e59;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+    }
+
+    .status-line {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+      min-height: 1.3em;
+    }
+
+    /* Predictions Panel */
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-header h2 {
+      font-size: 1.45rem;
+    }
+
+    .top-badge {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .predictions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .pred-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .pred-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .pred-pct {
+      color: var(--ink-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: var(--radius-pill);
+      transition: width 0.16s ease-out;
+    }
+
+    .pred-row.is-top .bar-fill {
+      background: var(--ink);
+    }
+
+    /* Info Sections */
+    .info-section {
+      padding-block: 3.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.75rem;
+    }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+    }
+
+    .info-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-card p {
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 0.94rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding-block: 2rem;
+      color: var(--ink-muted);
+      font-size: 0.88rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav-inner">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>Community Vision</span>
+      </div>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#classifier">Classifier</a>
+        <a href="#community">Community Impact</a>
+        <a href="#design">Design Craft</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow">Teachable Machine • Browser AI</span>
+        <h1>Visual recognition built for everyday community use.</h1>
+        <p class="hero-sub">
+          An accessible, client-side image classifier hosted on GitHub Pages. Turn on your camera
+          or upload an image to test real-time predictions directly in your browser.
+        </p>
+      </div>
+    </section>
+
+    <section id="classifier" class="container app-grid" aria-label="Image Classifier">
+      <div class="card">
+        <div id="stage" class="stage-frame">
+          <div id="placeholder" class="stage-placeholder">
+            Click <strong>Start Webcam</strong> or <strong>Upload Image</strong> to begin classifying.
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn" class="btn-primary" type="button">Start Webcam</button>
+          <button id="stopBtn" class="btn-secondary" type="button" disabled>Stop</button>
+          <label class="btn-secondary upload-btn" for="imageInput">
+            Upload Image
+            <input id="imageInput" type="file" accept="image/*" hidden />
+          </label>
+        </div>
+
+        <p id="status" class="status-line" role="status">Model ready to load on demand.</p>
+      </div>
+
+      <div class="card">
+        <div class="panel-header">
+          <h2>Predictions</h2>
+          <span id="topPrediction" class="top-badge">Awaiting input</span>
+        </div>
+        <div id="predictions" class="predictions-list">
+          <p class="status-line">Start the webcam or upload a photo to see class probabilities.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="community" class="info-section">
+      <div class="container">
+        <span class="eyebrow">Significance to the Community</span>
+        <h2>Why lightweight, local AI matters</h2>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3>Low Barrier to Entry</h3>
+            <p>
+              Anyone with a browser can try and learn from the model without installing software,
+              configuring environments, or paying for cloud compute.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Privacy-First Inference</h3>
+            <p>
+              Images are processed locally in the browser session rather than sent to a custom backend,
+              making experimentation safe and straightforward.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Open &amp; Iterative</h3>
+            <p>
+              Hosted on GitHub, the project invites classmates, teammates, and community members to
+              test edge cases and improve data quality together.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="design" class="info-section">
+      <div class="container">
+        <span class="eyebrow">Principles of Design</span>
+        <h2>Clarity, structure, and calm focus</h2>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3>Hierarchy &amp; Balance</h3>
+            <p>
+              Serif display headings establish editorial character while a two-column layout balances
+              visual input on the left with real-time probability feedback on the right.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Contrast &amp; Proximity</h3>
+            <p>
+              Crisp dark typography on a warm neutral canvas preserves readability, while tight grouping
+              links each label directly to its confidence meter.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3>Repetition &amp; Whitespace</h3>
+            <p>
+              Consistent card framing, rounded controls, and generous spacing keep the interface quiet
+              so the live prediction results stay front and center.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+      <span>Powered by Google Teachable Machine &amp; GitHub Pages</span>
+      <span>Model ID: <code>iegbAQDXj</code></span>
+    </div>
+  </footer>
+
+  <!-- TensorFlow.js & Teachable Machine Image Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/iegbAQDXj/";
+
+    const stageEl = document.getElementById("stage");
+    const placeholderEl = document.getElementById("placeholder");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const imageInput = document.getElementById("imageInput");
+    const statusEl = document.getElementById("status");
+    const predictionsEl = document.getElementById("predictions");
+    const topPredictionEl = document.getElementById("topPrediction");
+
+    let model = null;
+    let webcam = null;
+    let animId = null;
+    let maxPredictions = 0;
+    let rowRefs = [];
+
+    async function ensureModelLoaded() {
+      if (model) return;
+      statusEl.textContent = "Loading Teachable Machine model...";
+      const modelURL = MODEL_URL + "model.json";
+      const metadataURL = MODEL_URL + "metadata.json";
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+      buildPredictionRows(model.getClassLabels());
+      statusEl.textContent = "Model loaded.";
+    }
+
+    function buildPredictionRows(labels) {
+      predictionsEl.innerHTML = "";
+      rowRefs = labels.map((label) => {
+        const row = document.createElement("div");
+        row.className = "pred-row";
+
+        const meta = document.createElement("div");
+        meta.className = "pred-meta";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = label;
+
+        const pctSpan = document.createElement("span");
+        pctSpan.className = "pred-pct";
+        pctSpan.textContent = "0%";
+
+        meta.append(nameSpan, pctSpan);
+
+        const track = document.createElement("div");
+        track.className = "bar-track";
+
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+
+        track.appendChild(fill);
+        row.append(meta, track);
+        predictionsEl.appendChild(row);
+
+        return { row, pctSpan, fill };
+      });
+    }
+
+    function renderPredictions(preds) {
+      let best = { className: "", probability: -1 };
+
+      preds.forEach((p, idx) => {
+        if (p.probability > best.probability) best = p;
+        const pct = Math.round(p.probability * 100);
+        const ref = rowRefs[idx];
+        if (!ref) return;
+        ref.pctSpan.textContent = pct + "%";
+        ref.fill.style.width = pct + "%";
+        ref.row.classList.toggle("is-top", p.className === best.className && pct > 0);
+      });
+
+      if (best.probability >= 0) {
+        topPredictionEl.textContent =
+          `${best.className} (${Math.round(best.probability * 100)}%)`;
+      }
+    }
+
+    async function loop() {
+      if (!webcam) return;
+      webcam.update();
+      const preds = await model.predict(webcam.canvas);
+      renderPredictions(preds);
+      animId = window.requestAnimationFrame(loop);
+    }
+
+    function stopWebcam() {
+      if (animId) {
+        window.cancelAnimationFrame(animId);
+        animId = null;
+      }
+      if (webcam) {
+        webcam.stop();
+        webcam = null;
+      }
+      stopBtn.disabled = true;
+      startBtn.disabled = false;
+    }
+
+    startBtn.addEventListener("click", async () => {
+      try {
+        startBtn.disabled = true;
+        await ensureModelLoaded();
+        stopWebcam();
+
+        statusEl.textContent = "Requesting camera access...";
+        const flip = true;
+        webcam = new tmImage.Webcam(480, 360, flip);
+        await webcam.setup();
+        await webcam.play();
+
+        stageEl.innerHTML = "";
+        stageEl.appendChild(webcam.canvas);
+
+        stopBtn.disabled = false;
+        statusEl.textContent = "Classifying live webcam stream.";
+        animId = window.requestAnimationFrame(loop);
+      } catch (err) {
+        console.error(err);
+        startBtn.disabled = false;
+        statusEl.textContent =
+          "Could not start webcam. Check browser permissions or try Upload Image.";
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      stopWebcam();
+      stageEl.innerHTML = "";
+      stageEl.appendChild(placeholderEl);
+      statusEl.textContent = "Webcam stopped.";
+    });
+
+    imageInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      try {
+        await ensureModelLoaded();
+        stopWebcam();
+
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = async () => {
+          stageEl.innerHTML = "";
+          stageEl.appendChild(img);
+          const preds = await model.predict(img);
+          renderPredictions(preds);
+          statusEl.textContent = `Classified uploaded image: ${file.name}`;
+          URL.revokeObjectURL(objectUrl);
+        };
+        img.src = objectUrl;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Unable to classify the selected image.";
+      }
+    });
+  </script>
+</body>
+</html>
